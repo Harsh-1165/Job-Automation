@@ -346,12 +346,3 @@ Attempt 4 → HTTP 503 → Failed (retries exhausted)
 **Exactly-once external HTTP side effects are not guaranteed.** The system provides durable, at-least-once background-job publication. Duplicate Hangfire delivery or worker crashes may cause the external HTTP call to run more than once. See [ENGINEERING.md](./ENGINEERING.md).
 
 Running execution cancellation is **not supported** — cancellation is available for `Queued` and `Retrying` only.
-
-## What Is NOT Implemented Yet
-
-- Missed schedule catch-up
-- Running execution cancellation (requires HttpClient abort wiring)
-- Notifications, billing, distributed tracing platform
-- Redis/Kafka/external message brokers (PostgreSQL + Hangfire + outbox remain the dispatch path)
-
-See [ENGINEERING.md](./ENGINEERING.md) for detailed engineering notes.
