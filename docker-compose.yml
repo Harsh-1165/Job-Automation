@@ -1,0 +1,164 @@
+services:
+
+  postgres:
+
+    image: postgres:16-alpine
+
+    container_name: jobautomation-postgres
+
+    restart: unless-stopped
+
+    ports:
+
+      - "${POSTGRES_PORT:-5433}:5432"
+
+    environment:
+
+      POSTGRES_DB: ${POSTGRES_DB:-jobautomation}
+
+      POSTGRES_USER: ${POSTGRES_USER:-jobautomation}
+
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me_in_local_env}
+
+    volumes:
+
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-jobautomation} -d ${POSTGRES_DB:-jobautomation}"]
+
+      interval: 10s
+
+      timeout: 5s
+
+      retries: 5
+
+      start_period: 10s
+
+
+
+  api:
+
+    build:
+
+      context: ./backend
+
+      dockerfile: JobAutomation.Api/Dockerfile
+
+    container_name: jobautomation-api
+
+    restart: unless-stopped
+
+    ports:
+
+      - "${API_PORT:-8080}:8080"
+
+    environment:
+
+      ASPNETCORE_ENVIRONMENT: Production
+
+      ASPNETCORE_URLS: http://+:8080
+
+      DATABASE_CONNECTION_STRING: Host=postgres;Port=5432;Database=${POSTGRES_DB:-jobautomation};Username=${POSTGRES_USER:-jobautomation};Password=${POSTGRES_PASSWORD:-change_me_in_local_env}
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB:-jobautomation};Username=${POSTGRES_USER:-jobautomation};Password=${POSTGRES_PASSWORD:-change_me_in_local_env}
+
+      JWT_SECRET: ${JWT_SECRET:-change_me_to_a_long_random_secret_at_least_32_chars}
+
+      JWT_ISSUER: ${JWT_ISSUER:-JobAutomation}
+
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-JobAutomation}
+
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+
+    depends_on:
+
+      postgres:
+
+        condition: service_healthy
+
+    healthcheck:
+
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health/live || exit 1"]
+
+      interval: 15s
+
+      timeout: 5s
+
+      retries: 5
+
+      start_period: 40s
+
+
+
+  worker:
+
+    build:
+
+      context: ./backend
+
+      dockerfile: JobAutomation.Worker/Dockerfile
+
+    container_name: jobautomation-worker
+
+    restart: unless-stopped
+
+    environment:
+
+      ASPNETCORE_ENVIRONMENT: Production
+
+      DATABASE_CONNECTION_STRING: Host=postgres;Port=5432;Database=${POSTGRES_DB:-jobautomation};Username=${POSTGRES_USER:-jobautomation};Password=${POSTGRES_PASSWORD:-change_me_in_local_env}
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB:-jobautomation};Username=${POSTGRES_USER:-jobautomation};Password=${POSTGRES_PASSWORD:-change_me_in_local_env}
+
+      JWT_SECRET: ${JWT_SECRET:-change_me_to_a_long_random_secret_at_least_32_chars}
+
+      JWT_ISSUER: ${JWT_ISSUER:-JobAutomation}
+
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-JobAutomation}
+
+    depends_on:
+
+      postgres:
+
+        condition: service_healthy
+
+      api:
+
+        condition: service_healthy
+
+
+
+  frontend:
+
+    build:
+
+      context: ./frontend
+
+      dockerfile: Dockerfile
+
+      args:
+
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080}
+
+    container_name: jobautomation-frontend
+
+    restart: unless-stopped
+
+    ports:
+
+      - "${FRONTEND_PORT:-3000}:3000"
+
+    depends_on:
+
+      api:
+
+        condition: service_healthy
+
+
+
+volumes:
+
+  postgres_data:
+
+    name: jobautomation_postgres_data
+

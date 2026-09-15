@@ -1,0 +1,54 @@
+# Environment
+.env
+.env.local
+.env.*.local
+*.env
+
+# Secrets
+**/appsettings.Development.json
+**/appsettings.Local.json
+secrets/
+
+# Node / Frontend
+node_modules/
+frontend/.next/
+frontend/out/
+frontend/.turbo/
+*.tsbuildinfo
+next-env.d.ts
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.dll
+*.pdb
+*.log
+TestResults/
+*.DotSettings.user
+
+# IDE
+.vs/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Docker local overrides
+docker-compose.override.yml
+docker-compose.local.yml
+
+# Build output
+dist/
+publish/
+coverage/
