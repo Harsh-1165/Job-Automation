@@ -47,6 +47,8 @@ desktop.ini
 # Docker local overrides
 docker-compose.override.yml
 docker-compose.local.yml
+ngrok.local.yml
+.env
 
 # Build output
 dist/

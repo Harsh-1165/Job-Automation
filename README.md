@@ -153,6 +153,24 @@ curl http://localhost:8080/health/ready
 
 Set `CORS_ALLOWED_ORIGINS` and a strong `JWT_SECRET` before deploying to production.
 
+## Live Demo
+
+**Primary URL (open in browser):**
+
+https://scone-molecule-punk.ngrok-free.dev
+
+Reviewers can **register their own account** at `/register` — no shared credentials are required.
+
+| Endpoint | URL |
+|----------|-----|
+| Frontend | https://scone-molecule-punk.ngrok-free.dev |
+| API (proxied via frontend) | https://scone-molecule-punk.ngrok-free.dev/api |
+| Health (ready) | https://scone-molecule-punk.ngrok-free.dev/health/ready |
+
+The frontend proxies `/api/*` and `/health/*` to the backend API container. Swagger is disabled in Production (use local Development for OpenAPI UI).
+
+**Note:** This demo runs via Docker Compose on the host machine with an ngrok tunnel. The URL is active while the host stack and ngrok process remain running. For persistent cloud hosting, use the included `render.yaml` Blueprint (see [ENGINEERING.md](./ENGINEERING.md)).
+
 ## Authentication
 
 Register at `/register` or via API:

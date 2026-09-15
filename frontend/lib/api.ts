@@ -1,7 +1,7 @@
 import { clearAuth, getAccessToken } from "./auth";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+// Empty string uses same-origin requests (Next.js rewrites proxy to the API in production Docker).
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.trim() ?? "http://localhost:5000";
 
 export class ApiError extends Error {
   constructor(

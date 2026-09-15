@@ -1,0 +1,84 @@
+# Render Blueprint — Job Automation Platform
+# Deploy: Render Dashboard → New → Blueprint → connect GitHub repo
+# After deploy, verify health and register a reviewer account on the frontend URL.
+
+databases:
+  - name: jobautomation-db
+    databaseName: jobautomation
+    user: jobautomation
+    plan: free
+
+services:
+  - type: web
+    name: jobautomation-api
+    runtime: docker
+    plan: free
+    dockerfilePath: backend/JobAutomation.Api/Dockerfile
+    dockerContext: backend
+    healthCheckPath: /health/live
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_URLS
+        value: http://+:8080
+      - key: DATABASE_CONNECTION_STRING
+        fromDatabase:
+          name: jobautomation-db
+          property: connectionString
+      - key: ConnectionStrings__DefaultConnection
+        fromDatabase:
+          name: jobautomation-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_ISSUER
+        value: JobAutomation
+      - key: JWT_AUDIENCE
+        value: JobAutomation
+      - key: CORS_ALLOWED_ORIGINS
+        fromService:
+          type: web
+          name: jobautomation-frontend
+          envVarKey: RENDER_EXTERNAL_URL
+
+  - type: worker
+    name: jobautomation-worker
+    runtime: docker
+    plan: starter
+    dockerfilePath: backend/JobAutomation.Worker/Dockerfile
+    dockerContext: backend
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: DATABASE_CONNECTION_STRING
+        fromDatabase:
+          name: jobautomation-db
+          property: connectionString
+      - key: ConnectionStrings__DefaultConnection
+        fromDatabase:
+          name: jobautomation-db
+          property: connectionString
+      - key: JWT_SECRET
+        fromService:
+          type: web
+          name: jobautomation-api
+          envVarKey: JWT_SECRET
+      - key: JWT_ISSUER
+        value: JobAutomation
+      - key: JWT_AUDIENCE
+        value: JobAutomation
+
+  - type: web
+    name: jobautomation-frontend
+    runtime: docker
+    plan: free
+    dockerfilePath: frontend/Dockerfile
+    dockerContext: frontend
+    envVars:
+      - key: API_INTERNAL_URL
+        fromService:
+          type: web
+          name: jobautomation-api
+          property: hostport
+      - key: NEXT_PUBLIC_API_URL
+        value: ""

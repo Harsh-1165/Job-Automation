@@ -138,7 +138,8 @@ services:
 
       args:
 
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
+        API_INTERNAL_URL: http://api:8080
 
     container_name: jobautomation-frontend
 
@@ -147,6 +148,10 @@ services:
     ports:
 
       - "${FRONTEND_PORT:-3000}:3000"
+
+    environment:
+
+      API_INTERNAL_URL: http://api:8080
 
     depends_on:
 

@@ -523,6 +523,47 @@ Architecture invariant preserved: **API does not execute user HTTP jobs.** Only 
 
 Containers run as non-root where practical. Secrets are supplied via environment variables, not baked into images.
 
+## Production Deployment
+
+### Local public demo (ngrok + Docker Compose)
+
+For assignment review, the stack can be exposed with:
+
+1. `docker compose up -d --build`
+2. `ngrok start frontend --config ngrok.local.yml` (frontend tunnel on port 3000)
+
+The Next.js frontend proxies `/api/*` and `/health/*` to the internal API service (`API_INTERNAL_URL=http://api:8080`). Browser requests stay same-origin; CORS is not required for proxied API calls.
+
+### Render Blueprint (`render.yaml`)
+
+For persistent cloud deployment:
+
+| Service | Type | Notes |
+|---------|------|-------|
+| `jobautomation-db` | PostgreSQL | Managed persistent database |
+| `jobautomation-api` | Web (Docker) | Migrations on startup; `/health/live` health check |
+| `jobautomation-worker` | Worker (Docker) | **Required** for job execution; Starter plan on Render |
+| `jobautomation-frontend` | Web (Docker) | Proxies API via `API_INTERNAL_URL` |
+
+Deploy: Render Dashboard → **New Blueprint** → connect GitHub repo → apply.
+
+Set `JWT_SECRET` via Render generated secret. Set `CORS_ALLOWED_ORIGINS` to the frontend `RENDER_EXTERNAL_URL`.
+
+### Architecture invariants (production)
+
+- API does **not** execute user HTTP jobs
+- Worker is the sole HTTP job processor
+- PostgreSQL remains source of truth
+- Hangfire uses PostgreSQL storage
+- Transactional outbox remains the dispatch reliability layer
+
+### Known deployment limitations
+
+- ngrok free URLs change when the tunnel restarts unless a reserved domain is configured
+- Render free web services may sleep after inactivity (cold start delay)
+- Render background workers require a paid Starter plan
+- Exactly-once external HTTP side effects are not guaranteed
+
 ## Future Improvements
 
 - Missed schedule catch-up / advanced scheduler recovery
